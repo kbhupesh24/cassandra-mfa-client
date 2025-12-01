@@ -32,7 +32,7 @@ public class SslUtil {
             tmf.init(ks);
             log.debug("TrustManagerFactory initialized with {} trust managers", tmf.getTrustManagers().length);
 
-            log.debug("Creating TLS SSLContext");
+            log.debug("Creating TLS SSLContext for Cassandra MFA");
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, tmf.getTrustManagers(), null);
 
