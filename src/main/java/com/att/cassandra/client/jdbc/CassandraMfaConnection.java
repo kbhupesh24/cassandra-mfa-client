@@ -1,6 +1,8 @@
 package com.att.cassandra.client.jdbc;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Map;
@@ -9,11 +11,14 @@ import java.util.concurrent.Executor;
 
 public class CassandraMfaConnection implements Connection {
 
+    private static final Logger log = LoggerFactory.getLogger(CassandraMfaConnection.class);
+
     private final CqlSession session;
     private boolean closed = false;
 
     public CassandraMfaConnection(CqlSession session) {
         this.session = session;
+        log.debug("CassandraMfaConnection created");
     }
 
     public CqlSession getSession() {
@@ -22,6 +27,7 @@ public class CassandraMfaConnection implements Connection {
 
     @Override
     public Statement createStatement() throws SQLException {
+        log.warn("createStatement called - not implemented");
         throw new SQLFeatureNotSupportedException("createStatement not implemented for CassandraMfaConnection");
     }
 
@@ -63,8 +69,12 @@ public class CassandraMfaConnection implements Connection {
     @Override
     public void close() {
         if (!closed) {
+            log.debug("Closing CassandraMfaConnection");
             session.close();
             closed = true;
+            log.info("CassandraMfaConnection closed");
+        } else {
+            log.trace("close() called on already closed connection");
         }
     }
 
@@ -260,6 +270,7 @@ public class CassandraMfaConnection implements Connection {
 
     @Override
     public void abort(Executor executor) {
+        log.warn("abort() called - closing connection");
         close();
     }
 

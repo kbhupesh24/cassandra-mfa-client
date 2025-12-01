@@ -1,11 +1,16 @@
 package com.att.cassandra.client.jdbc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 public final class CassandraUrl {
+
+    private static final Logger log = LoggerFactory.getLogger(CassandraUrl.class);
 
     public final String host;
     public final int port;
@@ -38,6 +43,8 @@ public final class CassandraUrl {
         this.scope = scope;
         this.truststore = truststore;
         this.truststorePassword = truststorePassword;
+
+        log.debug("CassandraUrl created - host: {}, port: {}, dc: {}, tenant: {}", host, port, localDc, tenantId);
     }
 
     /**
@@ -48,7 +55,10 @@ public final class CassandraUrl {
      *    truststore=/path/to/truststore.jks&truststorePassword=changeit
      */
     public static CassandraUrl parse(String url, Properties info) throws SQLException {
+        log.debug("Parsing JDBC URL");
+
         if (url == null || !url.startsWith("jdbc:cassandra-mfa://")) {
+            log.error("Invalid URL format: {}", url);
             throw new SQLException("Invalid URL for CassandraMfaDriver: " + url);
         }
 
@@ -80,11 +90,14 @@ public final class CassandraUrl {
             try {
                 port = Integer.parseInt(portStr);
             } catch (NumberFormatException e) {
+                log.error("Invalid port number: {}", portStr);
                 throw new SQLException("Invalid port in Cassandra URL: " + portStr, e);
             }
         } else {
             host = hostPortPart;
         }
+
+        log.trace("Parsed host: {}, port: {}", host, port);
 
         Map<String, String> params = parseQuery(queryPart);
         // Fallbacks to Properties if not present in URL
@@ -97,17 +110,24 @@ public final class CassandraUrl {
         String truststorePassword = get(params, info, "truststorePassword");
 
         if (tenantId == null || clientId == null || clientSecret == null || scope == null) {
+            log.error("Missing required Azure AD parameters - tenantId: {}, clientId: {}, scope: {}",
+                    tenantId != null, clientId != null, scope != null);
             throw new SQLException("Missing required Azure AD parameters in URL or properties (tenantId, clientId, clientSecret, scope)");
         }
 
         String localDc = (dcPart != null && !dcPart.isEmpty()) ? dcPart : get(params, info, "localDc");
         if (localDc == null) {
+            log.error("Missing localDc parameter");
             throw new SQLException("Missing localDc in Cassandra URL or properties");
         }
 
         if (truststore == null || truststorePassword == null) {
+            log.error("Missing SSL parameters - truststore: {}, truststorePassword: {}",
+                    truststore != null, truststorePassword != null);
             throw new SQLException("Missing truststore or truststorePassword in URL or properties");
         }
+
+        log.info("JDBC URL parsed successfully - connecting to {}:{} in datacenter '{}'", host, port, localDc);
 
         return new CassandraUrl(
                 host,
