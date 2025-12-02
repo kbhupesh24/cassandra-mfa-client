@@ -44,18 +44,22 @@ public class CassandraMfaAutoConfiguration {
     public CqlSession cassandraMfaSession(CassandraMfaProperties props,
                                           AzureAdAuthProvider authProvider) throws Exception {
         log.info("Creating CqlSession bean with MFA authentication");
-        log.info("Cassandra connection: {}:{}, datacenter: {}", props.getHost(), props.getPort(), props.getLocalDc());
-        log.debug("SSL truststore: {}", props.getTruststore());
+        log.info("Cassandra connection: {}:{}, datacenter: {}, ssl: {}",
+                props.getHost(), props.getPort(), props.getLocalDc(), props.isSslEnabled());
 
         try {
-            CqlSession session = CqlSession.builder()
+            var builder = CqlSession.builder()
                     .addContactPoint(new InetSocketAddress(props.getHost(), props.getPort()))
                     .withLocalDatacenter(props.getLocalDc())
-                    .withAuthProvider(authProvider)
-                    .withSslContext(SslUtil.createSslContext(
-                            props.getTruststore(), props.getTruststorePassword()))
-                    .build();
+                    .withAuthProvider(authProvider);
 
+            if (props.isSslEnabled()) {
+                log.debug("SSL enabled, truststore: {}", props.getTruststore());
+                builder.withSslContext(SslUtil.createSslContext(
+                        props.getTruststore(), props.getTruststorePassword()));
+            }
+
+            CqlSession session = builder.build();
             log.info("CqlSession created successfully");
             return session;
         } catch (Exception e) {

@@ -21,6 +21,7 @@ public final class CassandraUrl {
     public final String clientSecret;
     public final String scope;
 
+    public final boolean sslEnabled;
     public final String truststore;
     public final String truststorePassword;
 
@@ -31,6 +32,7 @@ public final class CassandraUrl {
                          String clientId,
                          String clientSecret,
                          String scope,
+                         boolean sslEnabled,
                          String truststore,
                          String truststorePassword) {
 
@@ -41,10 +43,11 @@ public final class CassandraUrl {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.scope = scope;
+        this.sslEnabled = sslEnabled;
         this.truststore = truststore;
         this.truststorePassword = truststorePassword;
 
-        log.debug("CassandraUrl created - host: {}, port: {}, dc: {}, tenant: {}", host, port, localDc, tenantId);
+        log.debug("CassandraUrl created - host: {}, port: {}, dc: {}, tenant: {}, ssl: {}", host, port, localDc, tenantId, sslEnabled);
     }
 
     /**
@@ -106,6 +109,8 @@ public final class CassandraUrl {
         String clientSecret = get(params, info, "clientSecret");
         String scope = get(params, info, "scope");
 
+        String sslEnabledStr = get(params, info, "sslEnabled");
+        boolean sslEnabled = "true".equalsIgnoreCase(sslEnabledStr);
         String truststore = get(params, info, "truststore");
         String truststorePassword = get(params, info, "truststorePassword");
 
@@ -121,13 +126,13 @@ public final class CassandraUrl {
             throw new SQLException("Missing localDc in Cassandra URL or properties");
         }
 
-        if (truststore == null || truststorePassword == null) {
-            log.error("Missing SSL parameters - truststore: {}, truststorePassword: {}",
+        if (sslEnabled && (truststore == null || truststorePassword == null)) {
+            log.error("SSL enabled but missing SSL parameters - truststore: {}, truststorePassword: {}",
                     truststore != null, truststorePassword != null);
-            throw new SQLException("Missing truststore or truststorePassword in URL or properties");
+            throw new SQLException("SSL enabled but missing truststore or truststorePassword in URL or properties");
         }
 
-        log.info("JDBC URL parsed successfully - connecting to {}:{} in datacenter '{}'", host, port, localDc);
+        log.info("JDBC URL parsed successfully - connecting to {}:{} in datacenter '{}', ssl: {}", host, port, localDc, sslEnabled);
 
         return new CassandraUrl(
                 host,
@@ -137,6 +142,7 @@ public final class CassandraUrl {
                 clientId,
                 clientSecret,
                 scope,
+                sslEnabled,
                 truststore,
                 truststorePassword
         );

@@ -48,14 +48,18 @@ public class CassandraMfaDriver implements Driver {
         );
 
         try {
-            log.info("Building CqlSession to {}:{} in datacenter '{}'", parsed.host, parsed.port, parsed.localDc);
-            CqlSession session = CqlSession.builder()
+            log.info("Building CqlSession to {}:{} in datacenter '{}', ssl: {}", parsed.host, parsed.port, parsed.localDc, parsed.sslEnabled);
+            var builder = CqlSession.builder()
                     .addContactPoint(new InetSocketAddress(parsed.host, parsed.port))
                     .withLocalDatacenter(parsed.localDc)
-                    .withAuthProvider(new AzureAdAuthProvider(tokenProvider))
-                    .withSslContext(SslUtil.createSslContext(parsed.truststore, parsed.truststorePassword))
-                    .build();
+                    .withAuthProvider(new AzureAdAuthProvider(tokenProvider));
 
+            if (parsed.sslEnabled) {
+                log.debug("SSL enabled, truststore: {}", parsed.truststore);
+                builder.withSslContext(SslUtil.createSslContext(parsed.truststore, parsed.truststorePassword));
+            }
+
+            CqlSession session = builder.build();
             log.info("JDBC connection established successfully");
             return new CassandraMfaConnection(session);
         } catch (Exception e) {

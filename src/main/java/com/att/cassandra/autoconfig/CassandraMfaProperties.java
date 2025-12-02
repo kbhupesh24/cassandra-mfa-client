@@ -15,6 +15,7 @@ public class CassandraMfaProperties {
     private String host;
     private int port = 9042;
     private String localDc;
+    private boolean sslEnabled = false;
     private String truststore;
     private String truststorePassword;
 }
