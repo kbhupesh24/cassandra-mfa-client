@@ -8,6 +8,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Parses JDBC URLs for the Cassandra MFA driver.
+ *
+ * <p>This class extracts connection parameters from JDBC URLs in the format:</p>
+ * <pre>
+ * jdbc:cassandra-mfa://host:port/datacenter?param1=value1&param2=value2
+ * </pre>
+ *
+ * <h2>URL Components:</h2>
+ * <ul>
+ *   <li><b>host</b> - Cassandra node hostname or IP address</li>
+ *   <li><b>port</b> - CQL native transport port (default: 9042)</li>
+ *   <li><b>datacenter</b> - Local datacenter name for the driver</li>
+ * </ul>
+ *
+ * <h2>Query Parameters:</h2>
+ * <table border="1">
+ *   <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+ *   <tr><td>tenantId</td><td>Yes</td><td>Azure AD tenant ID</td></tr>
+ *   <tr><td>clientId</td><td>Yes</td><td>Azure AD application client ID</td></tr>
+ *   <tr><td>clientSecret</td><td>Yes</td><td>Azure AD client secret</td></tr>
+ *   <tr><td>scope</td><td>Yes</td><td>OAuth scope for token request</td></tr>
+ *   <tr><td>sslEnabled</td><td>No</td><td>Enable SSL/TLS (default: false)</td></tr>
+ *   <tr><td>truststore</td><td>If SSL</td><td>Path to JKS truststore file</td></tr>
+ *   <tr><td>truststorePassword</td><td>If SSL</td><td>Truststore password</td></tr>
+ * </table>
+ *
+ * <h2>Example URLs:</h2>
+ * <pre>
+ * // Without SSL
+ * jdbc:cassandra-mfa://localhost:9042/datacenter1?tenantId=...&clientId=...&clientSecret=...&scope=...
+ *
+ * // With SSL
+ * jdbc:cassandra-mfa://cassandra.example.com:9042/dc1?tenantId=...&clientId=...&clientSecret=...&scope=...&sslEnabled=true&truststore=/path/to/truststore.jks&truststorePassword=changeit
+ * </pre>
+ *
+ * @see CassandraMfaDriver
+ */
 public final class CassandraUrl {
 
     private static final Logger log = LoggerFactory.getLogger(CassandraUrl.class);

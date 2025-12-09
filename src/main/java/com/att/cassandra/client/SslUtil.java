@@ -12,6 +12,43 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
+/**
+ * Utility class for creating SSL/TLS contexts for secure Cassandra connections.
+ *
+ * <p>This class provides methods to create {@link SSLContext} instances from
+ * JKS (Java KeyStore) truststore files. The created context can be used with
+ * the DataStax Java Driver to establish encrypted connections to Cassandra.</p>
+ *
+ * <h2>Usage:</h2>
+ * <pre>{@code
+ * SSLContext sslContext = SslUtil.createSslContext(
+ *     "/path/to/truststore.jks",
+ *     "truststorePassword"
+ * );
+ *
+ * CqlSession session = CqlSession.builder()
+ *     .addContactPoint(new InetSocketAddress("cassandra.example.com", 9042))
+ *     .withSslContext(sslContext)
+ *     .withAuthProvider(authProvider)
+ *     .build();
+ * }</pre>
+ *
+ * <h2>Truststore Requirements:</h2>
+ * <ul>
+ *   <li>Format: JKS (Java KeyStore)</li>
+ *   <li>Must contain the CA certificate(s) that signed the Cassandra server certificate</li>
+ *   <li>For self-signed certificates, import the server's certificate directly</li>
+ * </ul>
+ *
+ * <h2>Creating a Truststore:</h2>
+ * <pre>
+ * # Import a CA certificate into a new truststore
+ * keytool -import -trustcacerts -alias cassandra-ca \
+ *     -file ca-cert.pem -keystore truststore.jks -storepass changeit
+ * </pre>
+ *
+ * @see javax.net.ssl.SSLContext
+ */
 public class SslUtil {
 
     private static final Logger log = LoggerFactory.getLogger(SslUtil.class);

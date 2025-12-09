@@ -9,6 +9,41 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+/**
+ * JDBC Connection wrapper around a DataStax CqlSession.
+ *
+ * <p>This class provides a minimal JDBC {@link Connection} implementation that wraps
+ * the DataStax Java Driver's {@link CqlSession}. It is designed primarily for
+ * compatibility with JDBC-based tools and frameworks.</p>
+ *
+ * <h2>Supported Operations:</h2>
+ * <ul>
+ *   <li>{@link #close()} - Closes the underlying CqlSession</li>
+ *   <li>{@link #isClosed()} - Check if connection is closed</li>
+ *   <li>{@link #isValid(int)} - Check if connection is valid</li>
+ *   <li>{@link #unwrap(Class)} - Access the underlying CqlSession</li>
+ * </ul>
+ *
+ * <h2>Unsupported Operations:</h2>
+ * <p>Most JDBC operations throw {@link SQLFeatureNotSupportedException} because
+ * Cassandra's CQL doesn't map directly to SQL semantics:</p>
+ * <ul>
+ *   <li>Transactions (commit, rollback, savepoints)</li>
+ *   <li>Prepared statements via JDBC API</li>
+ *   <li>Database metadata</li>
+ *   <li>JDBC result sets</li>
+ * </ul>
+ *
+ * <h2>Accessing CqlSession:</h2>
+ * <p>For full Cassandra functionality, unwrap the underlying CqlSession:</p>
+ * <pre>{@code
+ * CqlSession session = connection.unwrap(CqlSession.class);
+ * ResultSet rs = session.execute("SELECT * FROM keyspace.table");
+ * }</pre>
+ *
+ * @see CassandraMfaDriver
+ * @see CqlSession
+ */
 public class CassandraMfaConnection implements Connection {
 
     private static final Logger log = LoggerFactory.getLogger(CassandraMfaConnection.class);

@@ -1,10 +1,8 @@
-package com.att.cassandra.jdbc;
+package com.att.cassandra.client.jdbc;
 
 import com.att.cassandra.client.AzureAdAuthProvider;
 import com.att.cassandra.client.AzureAdTokenProvider;
 import com.att.cassandra.client.SslUtil;
-import com.att.cassandra.client.jdbc.CassandraMfaConnection;
-import com.att.cassandra.client.jdbc.CassandraUrl;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +11,55 @@ import java.net.InetSocketAddress;
 import java.sql.*;
 import java.util.Properties;
 
+/**
+ * JDBC Driver for Cassandra with Azure AD Multi-Factor Authentication (MFA) support.
+ *
+ * <p>This driver enables JDBC-based applications to connect to Cassandra clusters
+ * using Azure AD JWT tokens for authentication. It wraps the DataStax Java Driver
+ * and provides a standard JDBC interface.</p>
+ *
+ * <h2>JDBC URL Format:</h2>
+ * <pre>
+ * jdbc:cassandra-mfa://host:port/datacenter?tenantId=...&clientId=...&clientSecret=...&scope=...
+ * </pre>
+ *
+ * <h2>URL Parameters:</h2>
+ * <ul>
+ *   <li><b>tenantId</b> - Azure AD tenant ID (required)</li>
+ *   <li><b>clientId</b> - Azure AD application client ID (required)</li>
+ *   <li><b>clientSecret</b> - Azure AD client secret (required)</li>
+ *   <li><b>scope</b> - OAuth scope, e.g., "api://{app-id}/.default" (required)</li>
+ *   <li><b>sslEnabled</b> - Enable SSL/TLS (default: false)</li>
+ *   <li><b>truststore</b> - Path to JKS truststore (required if SSL enabled)</li>
+ *   <li><b>truststorePassword</b> - Truststore password (required if SSL enabled)</li>
+ * </ul>
+ *
+ * <h2>Usage Example:</h2>
+ * <pre>{@code
+ * // Load the driver
+ * Class.forName("com.att.cassandra.client.jdbc.CassandraMfaDriver");
+ *
+ * // Connect using JDBC URL
+ * String url = "jdbc:cassandra-mfa://localhost:9042/datacenter1" +
+ *     "?tenantId=your-tenant-id" +
+ *     "&clientId=your-client-id" +
+ *     "&clientSecret=your-secret" +
+ *     "&scope=api://your-app-id/.default";
+ *
+ * try (Connection conn = DriverManager.getConnection(url)) {
+ *     // Use the connection
+ *     CqlSession session = conn.unwrap(CqlSession.class);
+ *     session.execute("SELECT * FROM system.local");
+ * }
+ * }</pre>
+ *
+ * <h2>Note:</h2>
+ * <p>This driver provides limited JDBC functionality. For full CQL capabilities,
+ * use {@code conn.unwrap(CqlSession.class)} to access the underlying DataStax session.</p>
+ *
+ * @see CassandraMfaConnection
+ * @see CassandraUrl
+ */
 public class CassandraMfaDriver implements Driver {
 
     private static final Logger log = LoggerFactory.getLogger(CassandraMfaDriver.class);

@@ -16,11 +16,11 @@ public class CassandraMfaClientNoSsl {
         String tenantId = System.getenv("AZURE_TENANT_ID");
         String clientId = System.getenv("AZURE_CLIENT_ID");
         String clientSecret = System.getenv("AZURE_CLIENT_SECRET");
-        String scope = "https://cassandra.azure.com/.default"; // or whatever your cluster expects
+        String scope = "api://836282d7-675d-40f0-997b-b3522d97a7ab/.default"; // Azure AD app scope
 
         String host = "localhost";   // your Cassandra node
         int port = 9042;             // default CQL port
-        String localDc = "DC1";      // must match your cluster DC name
+        String localDc = "datacenter1";  // SimpleSnitch uses 'datacenter1'
 
         AzureAdTokenProvider tokenProvider =
                 new AzureAdTokenProvider(tenantId, clientId, clientSecret, scope);

@@ -10,6 +10,43 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+/**
+ * Provides OAuth 2.0 access tokens from Azure Active Directory using client credentials flow.
+ *
+ * <p>This class handles token acquisition, caching, and automatic refresh for service-to-service
+ * authentication with Azure AD. Tokens are cached and proactively refreshed before expiration
+ * to ensure seamless authentication without blocking on token renewal.</p>
+ *
+ * <h2>Features:</h2>
+ * <ul>
+ *   <li>Thread-safe token caching with double-checked locking</li>
+ *   <li>Proactive token refresh (2 minutes before expiry)</li>
+ *   <li>Automatic retry with exponential backoff (up to 3 attempts)</li>
+ *   <li>Uses Azure Identity SDK's ClientSecretCredential</li>
+ * </ul>
+ *
+ * <h2>Usage:</h2>
+ * <pre>{@code
+ * AzureAdTokenProvider tokenProvider = new AzureAdTokenProvider(
+ *     "your-tenant-id",
+ *     "your-client-id",
+ *     "your-client-secret",
+ *     "api://your-app-id/.default"
+ * );
+ * String jwtToken = tokenProvider.getToken();
+ * }</pre>
+ *
+ * <h2>Configuration:</h2>
+ * <ul>
+ *   <li><b>tenantId</b> - Azure AD tenant ID (GUID)</li>
+ *   <li><b>clientId</b> - Application (client) ID from Azure AD app registration</li>
+ *   <li><b>clientSecret</b> - Client secret from Azure AD app registration</li>
+ *   <li><b>scope</b> - OAuth scope, typically "api://{app-id}/.default"</li>
+ * </ul>
+ *
+ * @see AzureAdAuthProvider
+ * @see <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow">Azure AD Client Credentials Flow</a>
+ */
 public class AzureAdTokenProvider {
 
     private static final Logger log = LoggerFactory.getLogger(AzureAdTokenProvider.class);
